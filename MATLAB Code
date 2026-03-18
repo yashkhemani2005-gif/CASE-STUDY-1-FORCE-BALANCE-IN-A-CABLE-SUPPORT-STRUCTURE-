@@ -1,0 +1,60 @@
+% 3D Cable Tension Solver and Visualization
+clc; clear; close all;
+
+% 1. System Constants
+m = 1500;           % Mass in kg
+g = 9.81;           % Gravity [cite: 690]
+W = m * g;          % Weight in Newtons
+
+% 2. Anchor Coordinates (Relative to Joint at 0,0,0)
+P1 = [-4, 3, 10];
+P2 = [5, 4, 12];
+P3 = [0, -6, 8];
+Joint = [0, 0, 0];
+
+% 3. Calculate Unit Vectors (Direction Cosines)
+% These represent the direction of tension for each cable
+u1 = P1 / norm(P1);
+u2 = P2 / norm(P2);
+u3 = P3 / norm(P3);
+
+% 4. Construct Coefficient Matrix A (3x3)
+% Rows represent X, Y, and Z force balance [cite: 671, 692]
+A = [u1(1), u2(1), u3(1);  % Sum of Fx = 0
+     u1(2), u2(2), u3(2);  % Sum of Fy = 0
+     u1(3), u2(3), u3(3)]; % Sum of Fz = 0
+
+% 5. Construct Load Vector B
+% The only external force is weight acting in the Z-direction
+B = [0; 0; W];
+
+% 6. Solve for Tensions using Backslash Operator
+% This is the most efficient linear solver in MATLAB [cite: 696, 697]
+T = A \ B;
+
+% 7. Display Numerical Results
+fprintf('--- Results for 3D Cable Analysis ---\n');
+fprintf('Tension in Cable 1: %.2f N\n', T(1));
+fprintf('Tension in Cable 2: %.2f N\n', T(2));
+fprintf('Tension in Cable 3: %.2f N\n', T(3));
+
+% --- VISUALIZATION SECTION ---
+figure('Color', 'w', 'Name', '3D Cable Force Balance');
+hold on; grid on; axis equal;
+
+% Plot Cables from Origin (0,0,0) to Anchor Points
+plot3([Joint(1) P1(1)], [Joint(2) P1(2)], [Joint(3) P1(3)], 'r-o', 'LineWidth', 2, 'DisplayName', 'Cable 1');
+plot3([Joint(1) P2(1)], [Joint(2) P2(2)], [Joint(3) P2(3)], 'g-o', 'LineWidth', 2, 'DisplayName', 'Cable 2');
+plot3([Joint(1) P3(1)], [Joint(2) P3(2)], [Joint(3) P3(3)], 'b-o', 'LineWidth', 2, 'DisplayName', 'Cable 3');
+
+% Plot Weight Vector (Scaled down by 2000 for visual clarity)
+% Quiver arguments: (x, y, z, u, v, w, scale)
+quiver3(0, 0, 0, 0, 0, -W/2000, 0, 'k', 'LineWidth', 3, 'MaxHeadSize', 0.5, 'DisplayName', 'Weight Vector');
+
+% Formatting the Plot [cite: 332, 335, 336]
+title('3D Tripod Cable Suspension System');
+xlabel('X-axis (m)');
+ylabel('Y-axis (m)');
+zlabel('Z-axis (Height m)');
+legend('Location', 'northeastoutside');
+view(45, 30); % Sets the 3D perspective [cite: 168]
